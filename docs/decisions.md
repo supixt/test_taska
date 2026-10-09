@@ -20,7 +20,11 @@ Agreed before implementation. Any change to a decision below must be agreed firs
   (JSON/Markdown export), `app/main.py` (FastAPI), `app/static/index.html`, `app/prompts/system.md`;
   plus `scripts/build_data.py` and `tests/`.
 - **D2 Query loop**: LangChain tool calling with a single `run_sql` tool, driven by our own loop that owns the
-  attempt counter, the query log, and the stop rule.
+  attempt counter, the query log, and the stop rule. The loop gets model replies through a small message-source
+  interface ("given the message history, return the next AIMessage") with three implementations: live
+  (`ChatDeepSeek(...).bind_tools([run_sql]).invoke(history)`), replay (next saved AIMessage from
+  `runs/<id>.json`), and tests (next message from a scripted list). LangChain's `GenericFakeChatModel` is not
+  used: its `bind_tools()` raises `NotImplementedError` (checked in `.venv`).
 - **D3 Grounding checks (code, not prompt)**: the final answer is structured; every reported figure cites a
   query attempt, row, and column, and code verifies it equals that logged cell. The app also runs fixed control
   SQL for gross / refunds / net over the model's periods and flags any disagreement. Every follow-up breakdown
@@ -32,8 +36,9 @@ Agreed before implementation. Any change to a decision below must be agreed firs
 - **D5 Storage and report**: one JSON file per investigation in `runs/` (question and follow-ups, definitions,
   assumptions, prompt and model config, raw model responses, every query attempt with result or error, final
   answers, check results). That file is the JSON export; the Markdown report is rendered from it.
-- **D6 Replay**: replay feeds saved model responses, in order, to LangChain's fake chat model and runs the SQL
-  live, comparing results with the saved ones. Every run is labelled `live`, `replay`, or `simulated`; a
+- **D6 Replay**: replay uses the replay message source (D2), which returns the saved model responses in order
+  and fails clearly if they run out or the conversation diverges; the SQL still runs live and results are
+  compared with the saved ones. Every run is labelled `live`, `replay`, or `simulated`; a
   `--simulate` flag produces labelled failures.
 - **D7 Prompt**: `app/prompts/system.md` includes `domain.md` and `schema.sql` verbatim at runtime, the tool
   rules and limits, the analysis rules (half-open UTC periods, cents, aggregate orders and refunds separately,
@@ -52,7 +57,7 @@ Agreed before implementation. Any change to a decision below must be agreed firs
   cents, refunds per order not above the order amount, and `YYYY-MM-DD` dates. The app refuses to start and
   names the failing check.
 - **D11 Tests**: unit tests for the query tool (write rejected with unchanged DB hash; PRAGMA / ATTACH / other
-  tables rejected; timeout; row cap; malformed SQL); loop tests with a scripted fake model (shared budget,
+  tables rejected; timeout; row cap; malformed SQL); loop tests with the scripted message source (shared budget,
   failed query counts, visible API failure, wrong cited figure caught); the five minimum-demonstration checks
   run against saved real responses in replay, with a script writing `docs/check-results.md`; one live DeepSeek
   test marked `live`, skipped without a key.
