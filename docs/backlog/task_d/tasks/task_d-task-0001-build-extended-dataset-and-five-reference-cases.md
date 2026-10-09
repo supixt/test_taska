@@ -1,16 +1,17 @@
 - ID: task_d-task-0001
 - Title: Build extended dataset and five reference cases
 - Type: task
-- Status: todo
+- Status: in-progress
 - Priority: P0
-- Assignee: -
+- Assignee: supixt
 - Domain: implementation
 - Parent: -
-- Branch: -
+- Branch: task_d-task-0001
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 11:51
-- Work log: -
+- Updated: 09-10-2026 12:01
+- Work log:
+  - work started [1]: 09-10-2026 12:01
 - Comments: -
 
 ## Business background
