@@ -9,9 +9,10 @@
 - Branch: -
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 11:51
+- Updated: 09-10-2026 12:01
 - Work log: -
-- Comments: -
+- Comments:
+  - [09-10-2026 12:01] supixt: Decision change (D6, docs/decisions.md f008f54): replay uses the replay message source instead of LangChain's fake chat model; it returns saved AIMessages from runs/<id>.json in order and fails clearly if they run out or the conversation diverges. SQL still runs live and results are compared with the saved ones. The fake-chat-model wording in 'What to build' is superseded by this comment. (via /comment)
 
 ## Business background
 Another person must be able to reproduce a finding, and reviewers must replay real model responses without an
