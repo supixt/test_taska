@@ -1,16 +1,17 @@
 - ID: task_d-task-0002
 - Title: Read-only query tool and data validation
 - Type: task
-- Status: todo
+- Status: in-progress
 - Priority: P0
-- Assignee: -
+- Assignee: supixt
 - Domain: implementation
 - Parent: -
-- Branch: -
+- Branch: task_d-task-0002
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 11:51
-- Work log: -
+- Updated: 09-10-2026 12:30
+- Work log:
+  - work started [1]: 09-10-2026 12:30
 - Comments: -
 
 ## Business background
