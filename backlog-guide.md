@@ -219,6 +219,9 @@ No epics, no re-parenting, no multiple parents, no cross-scope links.
   `.claude/commands/` are thin wrappers around it.
 - The script reads and writes tickets through a git worktree at `.backlog/` (gitignored) checked out on the
   `backlog` branch. Every write is one commit there; with a remote configured it is also pushed.
+- `/start` branches from the remote's `main` (fetched first). `/finish` pushes the `<ID>` branch, opens a
+  GitHub pull request into `main` (or reuses the open one) with the git credential already stored for
+  github.com, and records the PR URL in `Comments`. `--no-pr` skips this; `--link <url>` records a given URL.
 - Read a ticket: `python3 scripts/backlog.py show <ID>`. Check the whole backlog: `python3 scripts/backlog.py lint`.
 - Required body headings, task: `## Business background`, `## What to build`, `## Threats and risks`,
   `## Done when`, `## Acceptance criteria`. Bug: `## Description`, `## Environment`,

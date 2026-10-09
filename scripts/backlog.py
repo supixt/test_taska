@@ -11,7 +11,7 @@ Every write is linted and secret-scanned before it is committed; any failure wri
     python scripts/backlog.py start <ID> [--domain <d>]
     python scripts/backlog.py pause <ID> "<reason>"
     python scripts/backlog.py release <ID> [--domain <d>]
-    python scripts/backlog.py finish <ID> [--link <url>]
+    python scripts/backlog.py finish <ID> [--link <url> | --no-pr]   (pushes <ID> and opens a PR)
     python scripts/backlog.py cancel <ID> "<reason>"
     python scripts/backlog.py breakdown <ID> --child <type> "<title>" <body-file> [--child ...] [--priority] [--domain]
     python scripts/backlog.py priority <ID> <P0..P3> "<reason>"
@@ -24,7 +24,10 @@ Written to run on Python 3.9+ with the standard library only.
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import urllib.error
+import urllib.request
 import re
 import subprocess
 import sys
@@ -491,7 +494,69 @@ def attach_branch(tid):
     if git("rev-parse", "--verify", "--quiet", tid, check=False):
         git("checkout", "-q", tid)
     else:
-        git("checkout", "-q", "-b", tid, BASE_BRANCH)
+        base = BASE_BRANCH
+        if has_remote():  # branch from the remote's main, so merged work is never missing
+            git("fetch", "-q", "origin", BASE_BRANCH)
+            base = f"origin/{BASE_BRANCH}"
+        git("checkout", "-q", "--no-track", "-b", tid, base)
+
+
+# ---------------------------------------------------------------- pull requests (GitHub)
+
+def github_repo():
+    url = git("remote", "get-url", "origin", check=False)
+    m = re.match(r"^(?:https://github\.com/|git@github\.com:)([^/]+)/(.+?)(?:\.git)?/?$", url)
+    if not m:
+        raise Fail(f"origin is not a GitHub repository ({url or 'no origin'}); use --no-pr")
+    return m.group(1), m.group(2)
+
+
+def github_token():
+    """The token git already uses for github.com (credential helper); never printed."""
+    r = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
+                       capture_output=True, text=True, cwd=ROOT)
+    token = next((ln[9:] for ln in r.stdout.splitlines() if ln.startswith("password=")), "")
+    if not token:
+        raise Fail("no GitHub credential found for git; log in once with `git push`, or use --no-pr")
+    return token
+
+
+def github_api(method, path, payload=None):
+    req = urllib.request.Request(
+        f"https://api.github.com{path}", method=method,
+        data=json.dumps(payload).encode() if payload is not None else None,
+        headers={"Authorization": f"Bearer {github_token()}",
+                 "Accept": "application/vnd.github+json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.load(resp)
+    except urllib.error.HTTPError as e:
+        detail = json.loads(e.read() or b"{}")
+        errors = "; ".join(x.get("message", str(x)) for x in detail.get("errors", []))
+        raise Fail(f"GitHub API {method} {path}: {e.code} {detail.get('message', '')} {errors}".strip())
+
+
+def open_pull_request(t, ticket_path):
+    """Push the ticket's branch and return the URL of its open PR, creating one if needed."""
+    tid = t["ID"]
+    if git("rev-parse", "--abbrev-ref", "HEAD") != tid:
+        raise Fail(f"check out branch {tid} before /finish")
+    if git("status", "--porcelain"):
+        raise Fail("working tree has uncommitted changes; commit your work before /finish")
+    owner, repo = github_repo()
+    git("push", "-q", "-u", "origin", tid)
+    existing = github_api("GET", f"/repos/{owner}/{repo}/pulls?head={owner}:{tid}&state=open")
+    if existing:
+        return existing[0]["html_url"]
+    ticket_url = (f"https://github.com/{owner}/{repo}/blob/{BRANCH}/"
+                  f"{ticket_path.relative_to(WT).as_posix()}")
+    pr = github_api("POST", f"/repos/{owner}/{repo}/pulls", {
+        "title": f"{tid}: {t['Title']}",
+        "head": tid,
+        "base": BASE_BRANCH,
+        "body": f"Backlog ticket: [{tid}]({ticket_url})\n\nOpened by `/finish`.",
+    })
+    return pr["html_url"]
 
 
 def simple_event(event):
@@ -501,6 +566,14 @@ def simple_event(event):
         if event == "start":
             transition(t, event, domain=a.domain)  # guard before touching git
             attach_branch(a.id)
+        elif event == "finish":
+            if t["Status"] not in EVENTS["finish"][0]:
+                transition(t, event)  # raises the standard refusal before anything is pushed
+            link = a.link
+            if not a.no_pr and not link:
+                link = open_pull_request(t, path)
+                print(f"pull request: {link}")
+            transition(t, event, link=link)
         else:
             transition(t, event, text=getattr(a, "text", None), priority=getattr(a, "priority", None),
                        domain=getattr(a, "domain", None), link=getattr(a, "link", None))
@@ -589,7 +662,8 @@ def main(argv=None):
     s.set_defaults(fn=simple_event("release"))
     s = sub.add_parser("finish")
     s.add_argument("id")
-    s.add_argument("--link", help="MR URL or other pointer to the delivered result")
+    s.add_argument("--link", help="record this URL instead of opening a pull request")
+    s.add_argument("--no-pr", action="store_true", help="do not push or open a pull request")
     s.set_defaults(fn=simple_event("finish"))
     s = sub.add_parser("priority")
     s.add_argument("id")
