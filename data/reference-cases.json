@@ -1,0 +1,201 @@
+{
+  "generated_by": "scripts/build_data.py (plain-Python calculator; no SQL, no application code)",
+  "dataset": "data/sales.sqlite",
+  "units": "integer USD cents",
+  "periods": "UTC dates, half-open: start included, end excluded",
+  "cases": [
+    {
+      "id": "RC1",
+      "check": "Main investigation totals match the verified gross, refund and net totals",
+      "rule": "domain.md rules 2-3",
+      "input": {
+        "periods": [
+          {
+            "start": "2026-08-01",
+            "end_exclusive": "2026-09-01"
+          },
+          {
+            "start": "2026-09-01",
+            "end_exclusive": "2026-10-01"
+          }
+        ]
+      },
+      "expected": {
+        "august": {
+          "gross_cents": 60000,
+          "refunds_cents": 2500,
+          "net_cents": 57500
+        },
+        "september": {
+          "gross_cents": 60000,
+          "refunds_cents": 10300,
+          "net_cents": 49700
+        },
+        "net_change_cents": -7800
+      },
+      "supporting_ids": {
+        "orders": [
+          "O1",
+          "O2",
+          "O3",
+          "O4",
+          "O13",
+          "O14",
+          "O15",
+          "O16",
+          "O17",
+          "O18",
+          "O19",
+          "O20",
+          "O21",
+          "O22",
+          "O23",
+          "O24",
+          "O25",
+          "O26",
+          "O27",
+          "O28",
+          "O29",
+          "O30"
+        ],
+        "refunds": [
+          "RF1",
+          "RF2",
+          "RF3",
+          "RF5",
+          "RF6",
+          "RF7",
+          "RF8"
+        ]
+      }
+    },
+    {
+      "id": "RC2",
+      "check": "An order with multiple refunds is counted once in gross sales",
+      "rule": "domain.md rule 3",
+      "input": {
+        "period": {
+          "start": "2026-09-01",
+          "end_exclusive": "2026-10-01"
+        },
+        "orders_with_multiple_refunds": [
+          "O3"
+        ]
+      },
+      "expected": {
+        "gross_cents": 60000,
+        "faulty_left_join_gross_cents": 65000
+      },
+      "supporting_ids": {
+        "orders": [
+          "O3",
+          "O4",
+          "O22",
+          "O23",
+          "O24",
+          "O25",
+          "O26",
+          "O27",
+          "O28",
+          "O29",
+          "O30"
+        ],
+        "refunds": [
+          "RF2",
+          "RF3"
+        ]
+      }
+    },
+    {
+      "id": "RC3",
+      "check": "Segment breakdown sums to the period totals",
+      "rule": "domain.md rules 2-4 (refund takes the segment of the original order's customer)",
+      "input": {
+        "period": {
+          "start": "2026-09-01",
+          "end_exclusive": "2026-10-01"
+        },
+        "breakdown": "segment"
+      },
+      "expected": {
+        "segments": {
+          "large": {
+            "gross_cents": 13500,
+            "refunds_cents": 2400,
+            "net_cents": 11100
+          },
+          "medium": {
+            "gross_cents": 13500,
+            "refunds_cents": 2700,
+            "net_cents": 10800
+          },
+          "small": {
+            "gross_cents": 33000,
+            "refunds_cents": 5200,
+            "net_cents": 27800
+          }
+        },
+        "total": {
+          "gross_cents": 60000,
+          "refunds_cents": 10300,
+          "net_cents": 49700
+        }
+      },
+      "supporting_ids": {
+        "orders": [
+          "O3",
+          "O4",
+          "O22",
+          "O23",
+          "O24",
+          "O25",
+          "O26",
+          "O27",
+          "O28",
+          "O29",
+          "O30"
+        ],
+        "refunds": [
+          "RF2",
+          "RF3",
+          "RF6",
+          "RF7",
+          "RF8"
+        ]
+      }
+    },
+    {
+      "id": "RC4",
+      "check": "A write attempt is rejected without changing the database, and a failed query counts toward the execution limit",
+      "rule": "brief, Technical Implementation (read-only tool, six attempts per investigation)",
+      "input": {
+        "queries": [
+          "DELETE FROM refunds",
+          "SELECT FROM orders"
+        ]
+      },
+      "expected": {
+        "statuses": [
+          "rejected",
+          "error"
+        ],
+        "database_unchanged": true,
+        "attempts_used": 2
+      }
+    },
+    {
+      "id": "RC5",
+      "check": "Saved report reproduces the refund discrepancy without explaining customer behaviour",
+      "rule": "domain.md rule 4 (records show amounts and dates, not refund reasons)",
+      "input": {
+        "question": "Why did net sales change from August to September 2026?"
+      },
+      "expected": {
+        "gross_change_cents": 0,
+        "refunds_change_cents": 7800,
+        "net_change_cents": -7800,
+        "not_established": "why customers requested refunds"
+      }
+    }
+  ]
+}
