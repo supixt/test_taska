@@ -9,9 +9,10 @@
 - Branch: -
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 11:51
+- Updated: 09-10-2026 12:01
 - Work log: -
-- Comments: -
+- Comments:
+  - [09-10-2026 12:01] supixt: Correction to Done when: 'O3 amount times its extra refund rows' holds only on the seed. On the extended data the faulty-join overcount for a period is the sum over every order in that period with more than one refund of (order amount x (refund rows - 1)). (via /comment)
 
 ## Business background
 Optional enhancement from the brief: a visual comparison of results before and after correcting a faulty join.
