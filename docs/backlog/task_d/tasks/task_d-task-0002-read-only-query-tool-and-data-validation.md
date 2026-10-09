@@ -1,17 +1,18 @@
 - ID: task_d-task-0002
 - Title: Read-only query tool and data validation
 - Type: task
-- Status: in-progress
+- Status: done
 - Priority: P0
 - Assignee: supixt
 - Domain: implementation
 - Parent: -
 - Branch: task_d-task-0002
 - Created: 09-10-2026 11:51
-- Closed: -
+- Closed: 09-10-2026 12:32
 - Updated: 09-10-2026 12:32
 - Work log:
   - work started [1]: 09-10-2026 12:30
+  - work finished [1]: 09-10-2026 12:32
 - Comments:
   - [09-10-2026 12:32] supixt: LLM-usage candidate: (1) the first timeout test passed vacuously because SQLite counts a 16M-row cross join in 0.1 s; caught by a failing assertion, fixed with a 4^16-row query and an explicit timeout assertion. (2) A manual run on data/sales.sqlite showed a DELETE rejection labelled LIMIT_VARIABLE_NUMBER: the action-name map took all SQLITE_* constants, which reuse numbers; fixed with an explicit action list and a test that checks the named action. (via /comment)
 
