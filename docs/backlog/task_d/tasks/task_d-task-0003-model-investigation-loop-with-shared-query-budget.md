@@ -9,9 +9,10 @@
 - Branch: -
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 11:51
+- Updated: 09-10-2026 12:01
 - Work log: -
-- Comments: -
+- Comments:
+  - [09-10-2026 12:01] supixt: Decision change (D2, docs/decisions.md f008f54): the loop gets model replies through a message-source interface (history -> next AIMessage) with live (ChatDeepSeek.bind_tools([run_sql]).invoke), replay, and scripted-test implementations. Do not use GenericFakeChatModel: its bind_tools() raises NotImplementedError. Tests in this ticket use the scripted source. (via /comment)
 
 ## Business background
 The model investigates a sales question by requesting SQL through a tool and choosing at least one follow-up
