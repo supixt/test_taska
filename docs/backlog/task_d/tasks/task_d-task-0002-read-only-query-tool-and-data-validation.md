@@ -9,10 +9,11 @@
 - Branch: task_d-task-0002
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 12:30
+- Updated: 09-10-2026 12:32
 - Work log:
   - work started [1]: 09-10-2026 12:30
-- Comments: -
+- Comments:
+  - [09-10-2026 12:32] supixt: LLM-usage candidate: (1) the first timeout test passed vacuously because SQLite counts a 16M-row cross join in 0.1 s; caught by a failing assertion, fixed with a 4^16-row query and an explicit timeout assertion. (2) A manual run on data/sales.sqlite showed a DELETE rejection labelled LIMIT_VARIABLE_NUMBER: the action-name map took all SQLITE_* constants, which reuse numbers; fixed with an explicit action list and a test that checks the named action. (via /comment)
 
 ## Business background
 The model must only read the three local tables. The brief requires read-only enforcement through database or
