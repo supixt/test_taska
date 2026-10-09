@@ -1,0 +1,25 @@
+# Assignment materials from the hiring team (not part of the submission)
+client-ai-project-research*.html
+client-ai-starter-pack*.zip
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Backlog worktree (checked out on the `backlog` branch by scripts/backlog.py)
+.backlog/
+
+# Personal agent settings
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
