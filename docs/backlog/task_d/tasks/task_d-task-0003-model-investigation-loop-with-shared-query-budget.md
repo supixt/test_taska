@@ -1,16 +1,17 @@
 - ID: task_d-task-0003
 - Title: Model investigation loop with shared query budget
 - Type: task
-- Status: todo
+- Status: in-progress
 - Priority: P0
-- Assignee: -
+- Assignee: supixt
 - Domain: implementation
 - Parent: -
-- Branch: -
+- Branch: task_d-task-0003
 - Created: 09-10-2026 11:51
 - Closed: -
-- Updated: 09-10-2026 12:01
-- Work log: -
+- Updated: 09-10-2026 12:38
+- Work log:
+  - work started [1]: 09-10-2026 12:38
 - Comments:
   - [09-10-2026 12:01] supixt: Decision change (D2, docs/decisions.md f008f54): the loop gets model replies through a message-source interface (history -> next AIMessage) with live (ChatDeepSeek.bind_tools([run_sql]).invoke), replay, and scripted-test implementations. Do not use GenericFakeChatModel: its bind_tools() raises NotImplementedError. Tests in this ticket use the scripted source. (via /comment)
 
